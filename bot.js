@@ -105,8 +105,6 @@ async function placeInRoom([a, b], lobby) {
   const ah = history[a.id] = history[a.id] || [];
   const bh = history[b.id] = history[b.id] || [];
 
-  await lobby.fetch(1)
-
   const parent = await lobby.parent.fetch(1);
 
   const last = parent.children
