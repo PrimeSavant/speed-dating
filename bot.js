@@ -37,19 +37,23 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // if mute/deaf changed
   if (oldState.channelID === newState.channelID) return;
 
-  const member = newState.member;
-  const channel = await newState.channel?.fetch(1);
-  const oldChannel = await oldState.channel?.fetch(1);
+  try {
+    const member = newState.member;
+    const channel = await newState.channel?.fetch(1);
+    const oldChannel = await oldState.channel?.fetch(1);
 
-  if (channel?.name?.includes("Speed Dating Lobby"))
-    onEnterLobby(member, channel);
-  if (/💞 Speed Dating \d+/.test(oldChannel?.name)) onExitRoom(oldChannel);
-  if (
-    !channel ||
-    (oldChannel?.name.includes("Speed Dating") &&
-      !channel?.name.includes("Speed Dating"))
-  )
-    delete history[member.id];
+    if (channel?.name?.includes("Speed Dating Lobby"))
+      onEnterLobby(member, channel);
+    if (/💞 Speed Dating \d+/.test(oldChannel?.name)) onExitRoom(oldChannel);
+    if (
+      !channel ||
+      (oldChannel?.name.includes("Speed Dating") &&
+        !channel?.name.includes("Speed Dating"))
+    )
+      delete history[member.id];
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 client.login(process.env.TOKEN);
@@ -70,7 +74,6 @@ function onEnterLobby(a, channel) {
 function onExitRoom(channel) {
   if (channel.members.size) return;
   client.clearTimeout(timeouts[channel.id]);
-  console.log(timeouts[channel.id]);
   delete timeouts[channel.id];
   channel.delete();
 }
@@ -119,8 +122,8 @@ async function placeInRoom([a, b], lobby) {
       userLimit: 2,
     })
     .then(async (newChannel) => {
-      a.voice.setChannel(newChannel);
-      b.voice.setChannel(newChannel);
+      await a.voice.setChannel(newChannel);
+      await b.voice.setChannel(newChannel);
 
       timeouts[newChannel.id] = client.setTimeout(
         (chan) => {
