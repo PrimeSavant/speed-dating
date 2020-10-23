@@ -37,23 +37,24 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   // if mute/deaf changed
   if (oldState.channelID === newState.channelID) return;
 
-  try {
-    const member = newState.member;
-    const channel = await newState.channel?.fetch(1);
-    const oldChannel = await oldState.channel?.fetch(1);
+  const member = newState.member;
+  const channel = newState.channel
+  const oldChannel = oldState.channel
 
-    if (channel?.name?.includes("Speed Dating Lobby"))
-      onEnterLobby(member, channel);
-    if (/💞 Speed Dating \d+/.test(oldChannel?.name)) onExitRoom(oldChannel);
-    if (
-      !channel ||
-      (oldChannel?.name.includes("Speed Dating") &&
-        !channel?.name.includes("Speed Dating"))
-    )
-      delete history[member.id];
-  } catch (error) {
-    console.error(error);
+  if (channel?.name?.includes("Speed Dating Lobby")) {
+    channel?.fetch(1);
+    onEnterLobby(member, channel);
   }
+  if (/💞 Speed Dating \d+/.test(oldChannel?.name)) {
+    oldChannel?.fetch(1);
+    onExitRoom(oldChannel);
+  }
+  if (
+    !channel ||
+    (oldChannel?.name.includes("Speed Dating") &&
+      !channel?.name.includes("Speed Dating"))
+  )
+    delete history[member.id];
 });
 
 client.login(process.env.TOKEN);
