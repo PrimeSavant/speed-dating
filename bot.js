@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { CommandoClient } = require("discord.js-commando");
+const { Client } = require("discord.js");
 const path = require("path");
 
 const match = {
@@ -14,17 +14,7 @@ match.WomanBisexual = [...match.WomanHeterosexual, ...match.WomanHomosexual];
 const history = {};
 const timeouts = {}
 
-const client = new CommandoClient({
-  commandPrefix: "~",
-  owner: "542414827851612164",
-});
-
-client.registry
-  .registerDefaultTypes()
-  .registerDefaultGroups()
-  .registerDefaultCommands()
-  // .registerGroups([["admin", "Administrator commands"]])
-  .registerCommandsIn(path.join(__dirname, "commands"));
+const client = new Client();
 
 client.on("error", console.error);
 
@@ -41,7 +31,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
   const channel = newState.channel
   const oldChannel = oldState.channel
 
-  if (channel?.name?.includes("Speed Dating Lobby")) {
+  if (channel?.name.includes("Speed Dating Lobby")) {
     channel?.fetch(1);
     onEnterLobby(member, channel);
   }
