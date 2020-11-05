@@ -23,28 +23,38 @@ client.once("ready", async () => {
   // client.user.setActivity("Cupid 💘", { type: "PLAYING" });
 });
 
-client.on("voiceStateUpdate", async (oldState, newState) => {
+client.on("message", async (message) => {
+  if (message.content.startsWith("`join")) {
+    message.guild.channels.resolve(message.content.split(" ")[1]).join();
+  }
+})
+
+client.on("voiceStateUpdate", async (previous, current) => {
   // if mute/deaf changed
-  if (oldState.channelID === newState.channelID) return;
+  if (previous.channelID === current.channelID) return;
 
-  const member = newState.member;
-  const channel = newState.channel
-  const oldChannel = oldState.channel
+  const member = current.member;
+  const channel = current.channel;
+  const oldChannel = previous.channel;
 
-  if (channel?.name.includes("Speed Dating Lobby")) {
-    channel?.fetch(1);
-    onEnterLobby(member, channel);
+  try {
+    if (channel?.name.includes("Speed Dating Lobby")) {
+      channel?.fetch(1);
+      onEnterLobby(member, channel);
+    }
+    if (/💞 Speed Dating \d+/.test(oldChannel?.name)) {
+      oldChannel?.fetch(1);
+      onExitRoom(oldChannel);
+    }
+    if (
+      !channel ||
+      (oldChannel?.name.includes("Speed Dating") &&
+        !channel?.name.includes("Speed Dating"))
+    )
+      delete history[member.id];
+  } catch (e) {
+    console.error(e);
   }
-  if (/💞 Speed Dating \d+/.test(oldChannel?.name)) {
-    oldChannel?.fetch(1);
-    onExitRoom(oldChannel);
-  }
-  if (
-    !channel ||
-    (oldChannel?.name.includes("Speed Dating") &&
-      !channel?.name.includes("Speed Dating"))
-  )
-    delete history[member.id];
 });
 
 client.login(process.env.TOKEN);
@@ -76,19 +86,56 @@ function wereInRoom(a, b) {
 }
 
 function areCompatible(a, b) {
-  const gender1 = sexOf(a) + orientationOf(a);
-  const gender2 = sexOf(b) + orientationOf(b);
+  let canDate = true;
+  const areAttracted =
+    getAttractions(a).includes(getGender(b)) &&
+    getAttractions(b).includes(getGender(a));
 
-  return !!match[gender1]?.includes(gender2) 
+  if (preferSameContinent(a) || preferSameContinent(b)) {
+    const areClose = getContinent(a) === getContinent(b);
+    if (!areClose) canDate = false;
+  }
+
+  return areAttracted && canDate;
 }
 
-function sexOf(member) {
-  return member.roles.cache.find((r) => r.name === "Woman" || r.name === "Man")
-    ?.name;
+
+function preferSameContinent(member) {
+  return !!member.roles.cache.find((r) =>
+    r.name.includes("Distance | same continent")
+  );
 }
 
-function orientationOf(member) {
-  return member.roles.cache.find((r) => r.name.includes("sexual"))?.name;
+
+function getGender(member) {
+  const pattern = /❤ (\w+)/;
+  return member.roles.cache
+    .find((r) => pattern.test(r.name))
+    ?.name.match(pattern)[1];
+}
+
+function getAttractions(member) {
+  const pattern = /Attracted to (\w+)/
+  return member.roles.cache
+    .filter((r) => pattern.test(r.name))
+    .array()
+    .map((r) => r.name.match(pattern)[1])
+    .map((g) => (g === "men" ? "man" : g === "women" ? "woman" : g))
+    .map((g) => g.charAt(0).toUpperCase() + g.slice(1));
+}
+
+function getContinent(member) {
+  const pattern = /🌎 (\w+)/
+  return member.roles.cache
+    .find((r) => pattern.test(r.name))
+    ?.name.match(pattern)[1];
+}
+
+function getAge(member) {
+  const regex = /Age: (\d+)/
+  return member.roles.cache
+    .find((r) => regex.test(r.name))
+    ?.name.match(regex)[1];
 }
 
 async function placeInRoom([a, b], lobby) {
