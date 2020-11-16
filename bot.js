@@ -2,14 +2,6 @@ require("dotenv").config();
 const { Client } = require("discord.js");
 const path = require("path");
 
-const match = {
-  ManHeterosexual: ["WomanHeterosexual", "WomanBisexual"],
-  ManHomosexual: ["ManHomosexual", "ManBisexual"],
-  WomanHeterosexual: ["ManHeterosexual", "ManBisexual"],
-  WomanHomosexual: ["WomanHomosexual", "WomanBisexual"],
-};
-match.ManBisexual = [...match.ManHeterosexual, ...match.ManHomosexual];
-match.WomanBisexual = [...match.WomanHeterosexual, ...match.WomanHomosexual];
 
 const history = {};
 const timeouts = {}

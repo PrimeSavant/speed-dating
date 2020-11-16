@@ -12,5 +12,15 @@
   "dependencies": {
     "discord.js": "^12.3.1",
     "dotenv": "^8.2.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrjeanp/speed-dating.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/mrjeanp/speed-dating/issues"
+  },
+  "homepage": "https://github.com/mrjeanp/speed-dating#readme"
 }
